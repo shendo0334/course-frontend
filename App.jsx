@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_BASE = "http://k8s-cloudstu-ingress2-ba057b8c14-46021791.ap-south-2.elb.amazonaws.com/abhinand-cloud/";
 
 const fetcher = async (path, options = {}) => {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -38,7 +38,7 @@ function StatusBadge({ status }) {
 function CourseRow({ course, onSelect }) {
   return (
     <tr className="table__row" onClick={() => onSelect(course)}>
-      <td className="table__cell table__cell--code">{course.code}</td>
+      <td className="table__cell table__cell--code">{course.id}</td>
       <td className="table__cell">{course.name}</td>
       <td className="table__cell table__cell--meta">{course.credits ?? "—"}</td>
       <td className="table__cell table__cell--meta">{course.department ?? "—"}</td>
@@ -56,7 +56,7 @@ function CourseModal({ course, onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal__header">
-          <span className="modal__code">{course.code}</span>
+          <span className="modal__code">{course.id}</span>
           <button className="modal__close" onClick={onClose}>✕</button>
         </div>
         <h2 className="modal__name">{course.name}</h2>
@@ -76,18 +76,18 @@ function CourseModal({ course, onClose }) {
 function AddCoursePanel({ onAdd }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ code: "", name: "", credits: "", department: "" });
+  const [form, setForm] = useState({ id: "", name: "", credits: "", department: "" });
 
   const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const handleSubmit = async () => {
-    if (!form.code || !form.name) return;
+    if (!form.id || !form.name) return;
     setLoading(true);
     const payload = { ...form };
     if (payload.credits) payload.credits = Number(payload.credits);
     try {
       await onAdd(payload);
-      setForm({ code: "", name: "", credits: "", department: "" });
+      setForm({ id: "", name: "", credits: "", department: "" });
       setOpen(false);
     } finally {
       setLoading(false);
@@ -103,7 +103,7 @@ function AddCoursePanel({ onAdd }) {
         <div className="add-form">
           <div className="add-form__grid">
             {[
-              { name: "code", placeholder: "COURSE CODE *", required: true },
+              { name: "id", placeholder: "COURSE CODE *", required: true },
               { name: "name", placeholder: "COURSE NAME *", required: true },
               { name: "credits", placeholder: "CREDITS", type: "number" },
               { name: "department", placeholder: "DEPARTMENT" },
@@ -122,7 +122,7 @@ function AddCoursePanel({ onAdd }) {
           <button
             className="btn btn--submit"
             onClick={handleSubmit}
-            disabled={loading || !form.code || !form.name}
+            disabled={loading || !form.id || !form.name}
           >
             {loading ? "SUBMITTING…" : "SUBMIT COURSE"}
           </button>
@@ -170,13 +170,13 @@ export default function App() {
 
   const handleAdd = async (payload) => {
     await fetcher("/courses", { method: "POST", body: JSON.stringify(payload) });
-    notify(`Course ${payload.code} added`);
+    notify(`Course ${payload.id} added`);
     loadCourses();
   };
 
   const filtered = courses.filter(
     (c) =>
-      c.code?.toLowerCase().includes(search.toLowerCase()) ||
+      c.id?.toLowerCase().includes(search.toLowerCase()) ||
       c.name?.toLowerCase().includes(search.toLowerCase()) ||
       c.department?.toLowerCase().includes(search.toLowerCase())
   );
@@ -267,7 +267,7 @@ export default function App() {
               </thead>
               <tbody>
                 {filtered.map((c) => (
-                  <CourseRow key={c.code} course={c} onSelect={setSelected} />
+                  <CourseRow key={c.id} course={c} onSelect={setSelected} />
                 ))}
               </tbody>
             </table>
